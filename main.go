@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/rylio/ytdl"
@@ -16,6 +17,22 @@ func youtubeDown(url string) {
 
 	vid.Download(vid.Formats[17], file)
 
+}
+
+func Video_id(url string) (string, bool) {
+	if strings.Contains(url, "=") {
+		youtubeDown(url)
+		url := strings.Split(url, "=")
+		return url[len(url)-1], true
+	} else if strings.Contains(url, "/") {
+
+		youtubeDown(url)
+		url := strings.Split(url, "/")
+		return url[len(url)-1], true
+
+	} else {
+		return "fail", false
+	}
 }
 
 func main() {
