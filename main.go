@@ -1,11 +1,25 @@
 package main
 
-import "log"
+import (
+	"log"
+	"os"
 
-import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/rylio/ytdl"
+)
+
+func youtubeDown(url string) {
+	vid, _ := ytdl.GetVideoInfo(url)
+	file, _ := os.Create(vid.ID + ".mp3")
+
+	defer file.Close()
+
+	vid.Download(vid.Formats[17], file)
+
+}
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI("token")
+	bot, err := tgbotapi.NewBotAPI(giveKey("token"))
 	if err != nil {
 		log.Panic(err)
 	}
