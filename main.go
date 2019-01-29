@@ -19,7 +19,7 @@ func youtubeDown(url string) {
 
 }
 
-func Video_id(url string) (string, bool) {
+func getVideoID(url string) (string, bool) {
 	if strings.Contains(url, "=") {
 		youtubeDown(url)
 		url := strings.Split(url, "=")
@@ -36,7 +36,7 @@ func Video_id(url string) (string, bool) {
 }
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI(giveKey("token"))
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("token"))
 	if err != nil {
 		log.Panic(err)
 	}
@@ -58,10 +58,25 @@ func main() {
 
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-			msg.ReplyToMessageID = update.Message.MessageID
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
-			bot.Send(msg)
+			if strings.Contains(update.Message.Text, "youtu.be") || strings.Contains(update.Message.Text, "youtube") {
+				msg.Text = "music on the way"
+				msg.ReplyToMessageID = update.Message.MessageID
+				bot.Send(msg)
+				id, allow := getVideoID(update.Message.Text)
+
+				if allow {
+					newVideo := tgbotapi.NewAudioUpload(update.Message.Chat.ID, id+".mp3")
+					if _, err := bot.Send(newVideo); err != nil {
+						log.Panic(err)
+					}
+				}
+			} else {
+				msg.Text = "paste only the link to music"
+				msg.ReplyToMessageID = update.Message.MessageID
+				bot.Send(msg)
+			}
 		}
 	}
 }
