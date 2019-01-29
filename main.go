@@ -19,6 +19,17 @@ func youtubeDown(url string) {
 
 }
 
+func getRightLink(link string) string {
+	correctLink := strings.Split(link, " ")
+	for i := 0; i < len(correctLink); i++ {
+		if strings.Contains(correctLink[i], "https") {
+			return correctLink[i]
+		}
+
+	}
+	return "fail"
+}
+
 func getVideoID(url string) (string, bool) {
 	if strings.Contains(url, "=") {
 		youtubeDown(url)
@@ -52,7 +63,7 @@ func main() {
 
 	for update := range updates {
 		{
-			if update.Message == nil { 
+			if update.Message == nil {
 				continue
 			}
 
@@ -64,7 +75,7 @@ func main() {
 				msg.Text = "music on the way"
 				msg.ReplyToMessageID = update.Message.MessageID
 				bot.Send(msg)
-				id, allow := getVideoID(update.Message.Text)
+				id, allow := getVideoID(getRightLink(update.Message.Text))
 
 				if allow {
 					newVideo := tgbotapi.NewAudioUpload(update.Message.Chat.ID, id+".mp3")
