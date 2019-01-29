@@ -52,7 +52,7 @@ func main() {
 
 	for update := range updates {
 		{
-			if update.Message == nil { // ignore any non-Message Updates
+			if update.Message == nil { 
 				continue
 			}
 
