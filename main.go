@@ -19,34 +19,28 @@ func youtubeDown(url string) {
 
 }
 
-func getRightLink(link string) string {
-	correctLink := strings.Split(link, " ")
-	for i := 0; i < len(correctLink); i++ {
-		if strings.Contains(correctLink[i], "https") {
-			return correctLink[i]
+func getVideoID(url string) (string, bool) {
+	if strings.Contains(url, "=") {
+		urls := strings.Split(url, "=")
+		if len(urls[len(urls)-1]) == 11 {
+			youtubeDown(url)
+			return urls[len(urls)-1], true
+		}
+	}
+	if strings.Contains(url, "/") {
+		urls := strings.Split(url, "/")
+		if len(urls[len(urls)-1]) == 11 {
+			youtubeDown(url)
+			return urls[len(urls)-1], true
 		}
 
 	}
-	return "fail"
-}
+	return "fail", false
 
-func getVideoID(url string) (string, bool) {
-	if strings.Contains(url, "=") {
-		youtubeDown(url)
-		url := strings.Split(url, "=")
-		return url[len(url)-1], true
-	} else if strings.Contains(url, "/") {
-
-		youtubeDown(url)
-		url := strings.Split(url, "/")
-		return url[len(url)-1], true
-
-	} else {
-		return "fail", false
-	}
 }
 
 func main() {
+
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("token"))
 	if err != nil {
 		log.Panic(err)
@@ -60,34 +54,34 @@ func main() {
 	u.Timeout = 60
 
 	updates, err := bot.GetUpdatesChan(u)
-
 	for update := range updates {
-		{
-			if update.Message == nil {
-				continue
-			}
+		if update.Message == nil {
+			continue
+		}
 
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
-			if strings.Contains(update.Message.Text, "youtu.be") || strings.Contains(update.Message.Text, "youtube") {
-				msg.Text = "music on the way"
-				msg.ReplyToMessageID = update.Message.MessageID
-				bot.Send(msg)
-				id, allow := getVideoID(getRightLink(update.Message.Text))
+		if strings.Contains(update.Message.Text, "youtu.be") || strings.Contains(update.Message.Text, "https://www.youtube.com/watch?v") {
+			msg.Text = "music on the way"
+			msg.ReplyToMessageID = update.Message.MessageID
+			bot.Send(msg)
+			id, allow := getVideoID(update.Message.Text)
 
-				if allow {
-					newVideo := tgbotapi.NewAudioUpload(update.Message.Chat.ID, id+".mp3")
-					if _, err := bot.Send(newVideo); err != nil {
-						log.Panic(err)
-					}
+			if allow {
+				newVideo := tgbotapi.NewAudioUpload(update.Message.Chat.ID, id+".mp3")
+				if _, err := bot.Send(newVideo); err != nil {
+					log.Panic(err)
 				}
 			} else {
-				msg.Text = "paste only the link to music"
-				msg.ReplyToMessageID = update.Message.MessageID
+				msg.Text = "incorrect link"
 				bot.Send(msg)
 			}
+		} else {
+			msg.Text = "paste only the link to music"
+			msg.ReplyToMessageID = update.Message.MessageID
+			bot.Send(msg)
 		}
 	}
 }
